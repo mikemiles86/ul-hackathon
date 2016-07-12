@@ -1,0 +1,19 @@
+#symfony_apache:
+#  image: mashermike/apache:drupal
+#  container_name: symfony_apache
+#  volumes:
+#    - .:/var/www
+#  ports:
+#    - "8080:80"
+#  environment:
+#    HOST_IP: 192.168.99.1
+#    PHP_IDE_CONFIG: serverName=Symfony
+mongo_db:
+  image: mongo
+  container_name: mongo_db
+  volumes:
+    - ./mongo:/data
+  ports:
+    - "27017:27017"
+    - "28017:28017"
+
