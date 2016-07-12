@@ -4,7 +4,7 @@ namespace AppBundle\Utils
 
 use Symfony\Component\DomCrawler\Crawler;
 
-class ContentParser {
+class ULParser {
 
   private $crawler;
   //private $database;
