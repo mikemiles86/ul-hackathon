@@ -86,12 +86,10 @@ class ULParser {
     $crawler = new Crawler($html);
 
     foreach ($document_type->field_mappings as $field) {
-      $field_content = $crawler->filter($field->selector)->each(function (Crawler $node, $i) {
-        return $node->text();
-      });
+      $field_content = $this->getSelectorValue($crawler, $field->selector);
 
       if (!empty($field_content)) {
-        $parsed_data[] = [
+        $parsed_data[] = (object)[
           'field' => $field->machine_name,
           'selector' => $field->selector,
           'data' => $this->sanitizeContent($field_content),
@@ -103,26 +101,103 @@ class ULParser {
     return empty($parsed_data) ? null:$parsed_data;
   }
 
+  private function getSelectorValue(Crawler $crawler, $selector) {
+
+    $value = null;
+
+    if (is_string($selector)) {
+      $value = $crawler->filter($field->selector)->each(function (Crawler $node, $i) {
+        return $node->text();
+      });
+    }
+    else {
+      $selector_type = isset($selector->type) ? $selector->type : 'css';
+
+      switch ($selector_type) {
+        case 'xpath':
+          $element = $crawler->filterXPath($selector->selector);
+          break;
+        case 'css':
+        default:
+          $element = $crawler->filter($selector->selector);
+          break;
+      }
+
+      if (isset($selector->multiple) && $selector->multiple) {
+        $value = $element->each(function (Crawler $node, $i) use ($selector) {
+            if (isset($selector->extract)) {
+              return $node->extract($selector->extract);
+            }
+            else {
+              return $node->text();
+            }
+        });
+      }
+      elseif (isset($selector->extract)) {
+        $value = $element->extract($selector->extract);
+      }
+      else {
+        $value = $element->text();
+      }
+    }
+
+    return $value;
+  }
+
   private function contentChanged($content_a, $content_b) {
     return md5($content_a) == md5($content_b);
   }
 
   private function updateMetaData(&$content_document) {
-    // Create a 'metadata' document type.
-    $metadata_type = (object)[
-      ['machine_name' => 'keywords', 'selector' => 'meta [name|=Keywords]'],
-      ['machine_name' => 'description', 'selector' => 'meta [name|=Description'],
-    ];
-
-
-    if ($metadata = $this->parseContentData($content_document->raw_content, $metadata_type)) {
-      // Append to existing meta data.
+    $content_metadata = $content_document->metadata;
+    // Get metadata content.
+    if ($metadata = $this->parseContentData($content_document->raw_content, $this->getMetaDataType())) {
+      foreach ($metadata as $data) {
+        switch ($data->field) {
+          case 'keywords':
+            $keywords = explode(',', $data->data);
+            if (!isset($content_metadata['keywords'])) {
+              $content_metadata['keywords'] = $keywords;
+            }
+            else {
+              $content_metadata['keywords'] = array_merge($content_metadata['keywords'], $keywords);
+            }
+          break;
+          default:
+            $content_metadata[$data->field] = $data->data;
+        }
+      }
+      $content_document->metadata = $content_metadata;
     }
-
   }
 
   private function sanitizeContent($content) {
     return strip_tags($content);
+  }
+
+  private function getMetaDataType() {
+
+    $metadata_type = [];
+
+    $metadata_type[] = (object)[
+      'machine_name' => 'keywords',
+      'selector' => 'meta [name="keywords"]',
+      'extract' => array('content'),
+    ];
+    $metadata_type[] = (object)[
+      'machine_name' => 'description',
+      'selector' => 'meta [name="description"]',
+      'extract' => array('content'),
+    ];
+    $metadata_type[] = (object)[
+      'machine_name' => 'language',
+      'selector' => 'html',
+      'extract' => array('lang')
+    ];
+
+    $metadata_type = (object)$metadata_type;
+
+    return $metadata_type;
   }
 
 }
