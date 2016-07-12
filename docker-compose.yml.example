@@ -1,0 +1,21 @@
+# Commands to run:
+# dgen add ul_hack docker-compose.yml
+# sudo dgen hosts
+# dgen start ul_hack
+# Open in browser: ul_hack.doc
+ul_hack:
+  image: mashermike/apache:website
+  container_name: ul_hack
+  volumes:
+    - ./web:/var/www
+  ports:
+    - "8080:80"
+mongo_db:
+  image: mongo
+  container_name: mongo_db
+  volumes:
+    - ./mongo:/data
+  ports:
+    - "27017:27017"
+    - "28017:28017"
+
