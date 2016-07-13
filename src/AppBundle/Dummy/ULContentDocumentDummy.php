@@ -2,10 +2,10 @@
 
 namespace AppBundle\Dummy;
 
-use AppBundle\Util\ULContentDocumentInterface;
-use AppBundle\Util\ULSiteConfigInterface;
+use AppBundle\Document\ULContentDocument;
+use AppBundle\Document\ULSiteConfig;
 
-class ULContentDocumentDummy implements ULContentDocumentInterface {
+class ULContentDocumentDummy extends ULContentDocument {
 
   private $url;
   private $document_type;
@@ -14,7 +14,7 @@ class ULContentDocumentDummy implements ULContentDocumentInterface {
   private $raw_content;
   private $parsed_content;
 
-  public function __construct($url, ULSiteConfigInterface $site, $document_type = null, $last_updated = null) {
+  public function __construct($url, ULSiteConfig $site, $document_type = null, $last_updated = null) {
     $this->url = $url;
     $this->site = $site;
     if ($document_type) {

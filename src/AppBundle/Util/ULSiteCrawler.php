@@ -2,12 +2,18 @@
 
 namespace AppBundle\Util;
 
+use AppBundle\Document\ULContentDocument;
 use Symfony\Component\DomCrawler\Crawler;
+use AppBundle\Document\ULSiteConfig;
 
 class ULSiteCrawler implements ULSiteCrawlerInterface {
 
   private $known_links = array();
+  private $site;
 
+  public function __construct(ULSiteConfig $site) {
+    $this->site = $site;
+  }
 
   public function addKnownLink($url) {
     if (!in_array($url, $this->known_links)) {
@@ -191,4 +197,16 @@ class ULSiteCrawler implements ULSiteCrawlerInterface {
 
     return $page;
   }
+
+  public function createContentDocument($content) {
+    $content_document = new ULContentDocument();
+    $content_document->setSite($content['site_id']);
+    //$content->setRawContent($content['raw_content']);
+   // $content->setCreateDate(time());
+    $content_document->setUrl($content['url']);
+
+    return $content_document;
+
+  }
+
 }
