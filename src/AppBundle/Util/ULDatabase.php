@@ -49,9 +49,18 @@ class ULDatabase implements ULDatabaseInterface {
    *   true or false if successful.
    */
   public function saveContentDocument($content_document){
+    // connect
+    $m = $this->connection;
+    $m->connect();
 
+    // select a database
+    $db = $m->selectDatabase('ulhackathon');
+
+    // select a collection (analogous to a relational database's table)
+    $collection = $db->selectCollection('content_document');
+
+    //@TODO: Save.
   }
-
 
   /**
    * @param string $site_id
@@ -88,7 +97,63 @@ class ULDatabase implements ULDatabaseInterface {
    *   true or false if successful.
    */
   public function saveSiteConfig($site_config){
+    // connect
+    $m = $this->connection;
+    $m->connect();
 
+    // select a database
+    $db = $m->selectDatabase('ulhackathon');
+
+    // select a collection (analogous to a relational database's table)
+    $collection = $db->selectCollection('site_config');
+
+    //@TODO: Save.
   }
 
+  /**
+   * @param string $content_document_type_id
+   *   the unique id for the site
+   *
+   * @return Object
+   *   Return PHP object of the site config document or boolean FALSE.
+   */
+  public function loadContentDocumentType($content_document_type_id){
+    // connect
+    $m = $this->connection;
+    $m->connect();
+
+    // select a database
+    $db = $m->selectDatabase('ulhackathon');
+
+    // select a collection (analogous to a relational database's table)
+    $collection = $db->selectCollection('content_document_type');
+
+    // find the content_document in the collection
+    $cursor = $collection->findOne(['_id' => $content_document_type_id]);
+
+    return $cursor;
+  }
+
+  /**
+   * Saves a site config to the MongoDB.
+   *
+   * @param Object $content_document_type_id
+   *   The site_config php object.
+   *
+   * @return bool
+   *   true or false if successful.
+   */
+  public function saveContentDocumentType($content_document_type_id){
+    // connect
+    $m = $this->connection;
+    $m->connect();
+
+    // select a database
+    $db = $m->selectDatabase('ulhackathon');
+
+    // select a collection (analogous to a relational database's table)
+    $collection = $db->selectCollection('content_document_type');
+
+    //@TODO: Save.
+  }
 }
