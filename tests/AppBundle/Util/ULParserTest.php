@@ -2,6 +2,10 @@
 
 namespace Tests\AppBundle\Util;
 
+use AppBundle\Dummy\ULContentDocumentDummy;
+use AppBundle\Dummy\ULSiteConfigDummy;
+use AppBundle\Util\ULContentDocumentInterface;
+use AppBundle\Util\ULSiteConfigInterface;
 use AppBundle\Util\ULParser;
 
 class ULParserTest extends \PHPUnit_Framework_TestCase {
@@ -165,6 +169,30 @@ HTML;
     $result = $parser->getMetaData($html);
     $this->assertEquals($expected, $result);
 
+  }
+
+  public function testParseContentDocumentKnown() {
+
+    $document_type = (object)[
+      'type_id' => 'test',
+      'field_mappings' => [
+        (object)[
+          'machine_name' => 'title',
+          'selector' => '#slide-1 > div.slide-content > div > div > h1',
+        ],
+        (object)[
+          'machine_name' => 'body',
+          'selector' => '#slide-1 > div.slide-content > div > div > p',
+        ],
+      ]
+    ];
+
+    $stub_site = new ULSiteConfigDummy(array($document_type));
+    $stub_content_document = new ULContentDocumentDummy('https://www.wearegenuine.com', $stub_site, 'test');
+
+    $parser = new ULParser();
+    $result = $parser->parseContentDocument($stub_content_document);
+    $this->assertTrue($result);
   }
 }
 

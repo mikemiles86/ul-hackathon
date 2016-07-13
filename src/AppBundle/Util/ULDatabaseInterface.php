@@ -2,7 +2,7 @@
 
 namespace AppBundle\Util;
 
-class ULDatabaseInterface {
+interface ULDatabaseInterface {
 
   /**
    * Retrieves a content document from MongoDB based on Id.
@@ -13,7 +13,7 @@ class ULDatabaseInterface {
    * @return Object
    *   Return a PHP object of the content document or boolean FALSE.
    */
-  public function loadContentDocument($content_document_id) {}
+  public function loadContentDocument($content_document_id);
 
 
   /**
@@ -25,7 +25,7 @@ class ULDatabaseInterface {
    * @return bool
    *   true or false if successful.
    */
-  public function saveContentDocument($content_document) {}
+  public function saveContentDocument($content_document);
 
 
   /**
@@ -35,7 +35,7 @@ class ULDatabaseInterface {
    * @return Object
    *   Return PHP object of the site config document or boolean FALSE.
    */
-  public function loadSiteConfig($site_id) {}
+  public function loadSiteConfig($site_id);
 
 
   /**
@@ -47,6 +47,6 @@ class ULDatabaseInterface {
    * @return bool
    *   true or false if successful.
    */
-  public function saveSiteConfig($site_config){}
+  public function saveSiteConfig($site_config);
 
 }

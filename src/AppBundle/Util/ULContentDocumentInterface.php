@@ -3,22 +3,10 @@
 namespace AppBundle\Util;
 
 
-class ULContentDocumentInterface {
+interface ULContentDocumentInterface {
 
-  public function __get(){}
+  public function getSite();
 
-  public function __set(){}
-
-  public function getLastUpdated(){}
-
-  public function getSite(){}
-
-  public function getUrl(){}
-
-  public function getDocumentType(){}
-
-  public function getParsedContent(){}
-
-  public function update(){}
+  public function update();
 
 }

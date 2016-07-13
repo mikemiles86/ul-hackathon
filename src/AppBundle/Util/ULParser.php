@@ -16,14 +16,15 @@ class ULParser {
    */
   public function parseContentDocument(ULContentDocumentInterface $content_document) {
     // Check to see if needs to be updated.
-    if ($this->needsUpdate($content_document->last_updated)) {
+    if (!isset($content_document->last_updated) || ($this->needsUpdate($content_document->last_updated))) {
       // Able to get the site information?
-      if ($site == $content_document->getSite()) {
+      if ($site = $content_document->getSite()) {
         // Able to get raw content?
         if ($raw = $this->fetchContent($content_document->url)) {
+
           $parsed = FALSE;
           // Able to get the document type?
-          if ($document_type = $content_document->document_type) {
+          if (isset($content_document->document_type) && $content_document->document_type) {
             // parse based on the type found.
             $parsed = $this->parseContentData($raw, $document_type);
           }
@@ -39,7 +40,7 @@ class ULParser {
           }
 
           // Have parsed and different from previous version?
-          if ($parsed && $this->contentChanged($parsed, $content_document->parsed_content)) {
+          if ($parsed && (!isset($content_document->parsed_content) || $this->contentChanged($parsed, $content_document->parsed_content))) {
             // Update parsed.
             $content_document->parsed_content = $parsed;
             // Update raw.
@@ -47,11 +48,14 @@ class ULParser {
             // Update the metadata.
             $this->updateMetaData($content_document);
             // Update the content document.
-            $content_document->update();
+            if ($content_document->update()) {
+              return TRUE;
+            }
           }
         }
       }
     }
+    return FALSE;
   }
 
   /**
@@ -266,7 +270,7 @@ class ULParser {
    */
   private function updateMetaData(&$content_document) {
     // Get the original metadata value
-    $content_metadata = $content_document->metadata ? $content_document->metadata : array();
+    $content_metadata = isset($content_document->metadata) ? $content_document->metadata : array();
 
 
     // Get metadata content.
