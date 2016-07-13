@@ -15,4 +15,5 @@ class ULSiteConfigDummy implements ULSiteConfigInterface {
   public function getDocumentTypeInstances() {
     return $this->document_type_instances;
   }
+
 }
