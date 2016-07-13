@@ -3,6 +3,7 @@
 namespace AppBundle\Util;
 
 use Symfony\Component\DomCrawler\Crawler;
+use AppBundle\Document\ULContentDocument;
 
 class ULParser {
 
@@ -14,7 +15,7 @@ class ULParser {
    *
    * @param \AppBundle\Util\ULContentDocumentInterface $content_document
    */
-  public function parseContentDocument(ULContentDocumentInterface $content_document) {
+  public function parseContentDocument(ULContentDocument $content_document) {
     // Check to see if needs to be updated.
     if (!isset($content_document->last_updated) || ($this->needsUpdate($content_document->last_updated))) {
       // Able to get the site information?
