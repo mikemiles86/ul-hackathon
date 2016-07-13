@@ -12,42 +12,63 @@ class ULContentDocument implements ULContentDocumentInterface {
     /**
      * @MongoDB\Id
      */
-    public $content_document_id;
+    private $content_document_id;
+
+    /**
+     * @MongoDB\Field(type="string")
+     */
+    private $document_type;
+
+    /**
+     * @MongoDB\Field(type="string")
+     */
+    private $site_id;
+
+    /**
+     * @MongoDB\Field(type="string")
+     */
+    private $url;
 
     /**
      * @MongoDB\Field(type="timestamp")
      */
-    public $last_updated;
+    private $last_updated;
+
+    /**
+     * @MongoDB\Field(type="timestamp")
+     */
+    private $create_date;
 
     /**
      * @MongoDB\Field(type="string")
      */
-    public $site;
+    private $discovery_type;
 
     /**
      * @MongoDB\Field(type="string")
      */
-    public $url;
+    private $raw_content;
 
     /**
-     * @MongoDB\Field(type="string")
+     * @MongoDB\Field(type="collection")
      */
-    public $document_type;
+    private $parsed_content;
 
     /**
-     * @MongoDB\Field(type="string")
+     * @MongoDB\Field(type="collection")
      */
-    public $parsed_content;
+    private $site_usage;
+
+    /**
+     * @MongoDB\Field(type="collection")
+     */
+    private $metadata;
 
     public function __get($property){
 
     }
 
     public function __set($property, $value){
-
-    }
-
-    public function update(){
 
     }
 
@@ -91,7 +112,7 @@ class ULContentDocument implements ULContentDocumentInterface {
      */
     public function setSite($site)
     {
-        $this->site = $site;
+        $this->site_id = $site;
         return $this;
     }
 
@@ -102,7 +123,7 @@ class ULContentDocument implements ULContentDocumentInterface {
      */
     public function getSite()
     {
-        return $this->site;
+        return $this->site_id;
     }
 
     /**
@@ -152,7 +173,7 @@ class ULContentDocument implements ULContentDocumentInterface {
     /**
      * Set parsedContent
      *
-     * @param string $parsedContent
+     * @param collection $parsedContent
      * @return $this
      */
     public function setParsedContent($parsedContent)
@@ -164,10 +185,149 @@ class ULContentDocument implements ULContentDocumentInterface {
     /**
      * Get parsedContent
      *
-     * @return string $parsedContent
+     * @return collection $parsedContent
      */
     public function getParsedContent()
     {
         return $this->parsed_content;
     }
+
+    /**
+     * Set siteId
+     *
+     * @param string $siteId
+     * @return $this
+     */
+    public function setSiteId($siteId)
+    {
+        $this->site_id = $siteId;
+        return $this;
+    }
+
+    /**
+     * Get siteId
+     *
+     * @return string $siteId
+     */
+    public function getSiteId()
+    {
+        return $this->site_id;
+    }
+
+    /**
+     * Set createDate
+     *
+     * @param timestamp $createDate
+     * @return $this
+     */
+    public function setCreateDate($createDate)
+    {
+        $this->create_date = $createDate;
+        return $this;
+    }
+
+    /**
+     * Get createDate
+     *
+     * @return timestamp $createDate
+     */
+    public function getCreateDate()
+    {
+        return $this->create_date;
+    }
+
+    /**
+     * Set discoveryType
+     *
+     * @param string $discoveryType
+     * @return $this
+     */
+    public function setDiscoveryType($discoveryType)
+    {
+        $this->discovery_type = $discoveryType;
+        return $this;
+    }
+
+    /**
+     * Get discoveryType
+     *
+     * @return string $discoveryType
+     */
+    public function getDiscoveryType()
+    {
+        return $this->discovery_type;
+    }
+
+    /**
+     * Set rawContent
+     *
+     * @param string $rawContent
+     * @return $this
+     */
+    public function setRawContent($rawContent)
+    {
+        $this->raw_content = $rawContent;
+        return $this;
+    }
+
+    /**
+     * Get rawContent
+     *
+     * @return string $rawContent
+     */
+    public function getRawContent()
+    {
+        return $this->raw_content;
+    }
+
+    /**
+     * Set siteUsage
+     *
+     * @param collection $siteUsage
+     * @return $this
+     */
+    public function setSiteUsage($siteUsage)
+    {
+        $this->site_usage = $siteUsage;
+        return $this;
+    }
+
+    /**
+     * Get siteUsage
+     *
+     * @return collection $siteUsage
+     */
+    public function getSiteUsage()
+    {
+        return $this->site_usage;
+    }
+
+    /**
+     * Set metadata
+     *
+     * @param collection $metadata
+     * @return $this
+     */
+    public function setMetadata($metadata)
+    {
+        $this->metadata = $metadata;
+        return $this;
+    }
+
+    /**
+     * Get metadata
+     *
+     * @return collection $metadata
+     */
+    public function getMetadata()
+    {
+        return $this->metadata;
+    }
+
+    public function create() {}
+
+    public function update() {}
+
+    public function show() {}
+
 }

@@ -1,7 +1,6 @@
 <?php
 
-namespace AppBundle\Util;
-
+namespace AppBundle\Document;
 
 interface ULSiteConfigInterface {
 
