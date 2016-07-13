@@ -66,13 +66,14 @@ swiftmailer:
     username:  "%mailer_user%"
     password:  "%mailer_password%"
     spool:     { type: memory }
+
 # MongoDB
 doctrine_mongodb:
     connections:
         default:
             server: "%mongodb_server%"
             options: {}
-    default_database: ul_hackathon
+    default_database: ulhackathon
     document_managers:
         default:
             auto_mapping: true
