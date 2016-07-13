@@ -1,0 +1,13 @@
+# This file is auto-generated during the composer install
+parameters:
+    database_host: 45.55.224.182
+    database_port: 27017
+    database_name: ulhackathon
+    database_user: null
+    database_password: null
+    mailer_transport: smtp
+    mailer_host: 127.0.0.1
+    mailer_user: null
+    mailer_password: null
+    secret: ThisTokenIsNotSoSecretChangeIt
+    mongodb_server: 'mongodb://45.55.224.182:27017'

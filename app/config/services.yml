@@ -7,3 +7,15 @@ services:
 #    service_name:
 #        class: AppBundle\Directory\ClassName
 #        arguments: ["@another_service_name", "plain_value", "%parameter_name%"]
+services:
+    app.uldatabase:
+        class: AppBundle\Util\ULDatabase
+        arguments: ["@doctrine_mongodb.odm.default_connection"]
+    mongo.connection:
+        class: Doctrine\MongoDB\Connection
+        factory: ["@doctrine.odm.mongodb.document_manager", getConnection]
+        calls:
+            - [initialize, []]
+    mongo:
+        class: Mongo
+        factory: ["@mongo.connection", getMongo]
