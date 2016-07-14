@@ -81,19 +81,25 @@ class ULTaskRunner {
       // Have a site config?
       if ($site_config) {
         // Get new crawler.
-        $crawler = new ULSiteCrawler();
-        // Not Able to get exissting sitemap?
-        if (!$sitemap = $site_config->getSitemap()) {
-          // Create a blank one.
-          $sitemap = [
-            'url' => $site_config->getSiteDomain(),
-          ];
+        $crawler = new ULSiteCrawler($this->database, $site_config);
+
+        // Get sitemap from config.
+        $sitemap = $site_config->getSitemap();
+        // Sitemap not found? create a basic one.
+        if (!$sitemap) {
+          $sitemap = [['url' => $site_config->getSiteDomain(), 'parent' => '']];
         }
 
-        // Build Sitemap.
-        if ($sitemap = $crawler->buildSitemap($sitemap)) {
-          // Update sitemap
-          $site_config->saveSitemap($sitemap);
+        // Build the sitemap.
+        $sitemap = $crawler->buildSitemap($sitemap, 2);
+        // Update the sitemap.
+        $site_config->setSitemap($sitemap);
+        // Update last update date.
+        $site_config->setLastUpdateDate(time());
+        // Save site config.
+        if ($this->database->updateDocument($site_config)) {
+          $build['sitemaps']++;
+          $build['links'] += $crawler->countLinks($sitemap);
         }
       }
       else {
@@ -108,8 +114,19 @@ class ULTaskRunner {
    * Parse as many links from sitemap as possible.
    * @param \AppBundle\Util\int|NULL $allowed_time
    */
-  private function parseSitemap(int $allowed_time = null) {
+  public function parseSitemap(int $allowed_time = null) {
+    $parsed_count = 0;
 
+    //Start stopwatch
+    $this->startStopWatch('parse_sitemap');
+
+    // Loop and do as many as possible.
+    while (!$this->overAllowedTime('parse_sitemap', $allowed_time)) {
+
+
+    }
+
+    return $parsed_count;
   }
 
   private function startStopWatch($key) {

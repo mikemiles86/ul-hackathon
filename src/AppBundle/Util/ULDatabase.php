@@ -8,7 +8,7 @@ use AppBundle\Document\site_config;
 use Doctrine\MongoDB\Connection;
 use Doctrine\Bundle\MongoDBBundle\ManagerRegistry;
 
-class ULDatabase implements ULDatabaseInterface {
+class ULDatabase { //implements ULDatabaseInterface {
 
   private $connection;
 
@@ -149,7 +149,11 @@ class ULDatabase implements ULDatabaseInterface {
     $documents = $this->manager->getRepository('AppBundle:' . $type)
       ->findBy($filter, $sort, $limit);
 
-    return count($documents) > 0 ? $documents : false;
+    if ($documents && ($limit == 1)) {
+      $documents = array_pop($documents);
+    }
+
+    return $documents ?: false;
   }
 
 }

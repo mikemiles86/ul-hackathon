@@ -6,16 +6,110 @@ use AppBundle\Document\content_document;
 use Symfony\Component\DomCrawler\Crawler;
 use AppBundle\Document\site_config;
 
-class ULSiteCrawler implements ULSiteCrawlerInterface {
+class ULSiteCrawler {
 
-  private $known_links = array();
-  private $site;
-  private $max_nesting = 2;
-  private $max_discovery = 5;
-  private $discovery_count = 0;
+  private $database;
+  private $site_config;
 
-  public function __construct(site_config $site) {
-    $this->site = $site;
+  public function __construct(ULDatabase $database, site_config $site_config) {
+    $this->database = $database;
+    $this->site_config = $site_config;
+  }
+
+
+  public function buildSitemap($sitemap, $max_nesting = 5) {
+    // Flatten the sitemap.
+    $flat_map = $this->flattenSitemap($sitemap);
+    // Set known links.
+    $this->setKnownLinks(array_keys($flat_map));
+    $new_sitemap = $flat_map;
+    // Go forth and prosper the globe.
+    foreach($flat_map as $site_page) {
+      $new_sitemap = array_merge($new_sitemap, $this->buildSubMap($site_page, 1, $max_nesting));
+    }
+
+    // return inflated sitemap.
+    return $this->inflateSitemap($new_sitemap);
+  }
+
+
+  private function buildSubMap($page, $nest, $max_nest) {
+    // Get Raw content, accessbile from db?
+    $content = null;
+    $submap = array();
+
+    if ($nest > $max_nest) {
+      return $submap;
+    }
+
+    if (isset($page['content_document_id']) && $content_document = $this->database->loadContentDocument($page['content_document_id'])) {
+      $content = $content_document->getRawContent();
+      $nest -= 1;
+    }
+    // else make a curl call
+    elseif (isset($page['url']) && ($raw = $this->getPageContent($page['url']))) {
+      $content = $raw;
+    }
+
+    // Have content to crawl and found links?
+    if ($content && ($sub_links = $this->getPageLinks($content))) {
+      // Filter out non domain links.
+      $site_links = $this->filterDomainLinks($sub_links, $this->site_config->getSiteDomain());
+      // Add any unknown links to the sitemap.
+      foreach ($site_links as $url) {
+        if (!$this->isKnownLink($url)) {
+          // Add to known links.
+          $this->addKnownLink($url);
+          $sub_page = [
+            'url' => $url,
+            'parent' => $page['url'],
+          ];
+
+          // Add to sitemap.
+          $submap[$url] = $sub_page;
+          // Go get children.
+          if ($sub_submap = $this->buildSubMap($sub_page, $nest + 1, $max_nest)) {
+            $submap = array_merge($submap, $sub_submap);
+          }
+        }
+      }
+    }
+
+    return $submap;
+  }
+
+  private function flattenSitemap($sitemap) {
+    $flatmap = [];
+
+    foreach ($sitemap as $page) {
+      $flatmap[$page['url']] = $page;
+      if (isset($page['children'])) {
+        $flatmap = array_merge($flatmap, $this->flattenSitemap($page['children']));
+      }
+    }
+
+    return $flatmap;
+  }
+
+  private function inflateSitemap ($flat_map, $parent = '') {
+     $sitemap = [];
+
+    // find all items that have parent.
+    foreach ($flat_map as $page) {
+      if (isset($page['parent']) && ($page['parent'] == $parent)) {
+        if ($children = $this->inflateSitemap($flat_map, $page['url'])) {
+          $page['children'] = $children;
+        }
+        $sitemap[] = $page;
+      }
+    }
+
+    return $sitemap;
+  }
+
+
+  private function isKnownLink($url) {
+    return in_array($url, $this->known_links);
   }
 
   public function setKnownLinks($links) {
@@ -27,6 +121,7 @@ class ULSiteCrawler implements ULSiteCrawlerInterface {
       $this->known_links[] = $url;
     }
   }
+
   /**
    * Retrieve the HTML content of a page.
    *
@@ -78,7 +173,7 @@ class ULSiteCrawler implements ULSiteCrawlerInterface {
       $href = $node->extract(array('href'));
       $href = array_pop($href);
       // remove leading and trailing slashes.
-      $href = trim($href, '/');
+      $href = trim(trim($href), '/');
       return $href;
     });
 
@@ -116,6 +211,11 @@ class ULSiteCrawler implements ULSiteCrawlerInterface {
 
     // Loop through each of the link urls.
     foreach ($links as $url) {
+      $url = trim($url);
+      // Skip empty urls.
+      if (empty($url) || ($url == '/')) {
+        continue;
+      }
       $clean_url = '';
       // break into parts.
       $parsed_url = parse_url($url);
@@ -257,6 +357,11 @@ class ULSiteCrawler implements ULSiteCrawlerInterface {
         }
       }
     }
+  }
+
+  public function countLinks($sitemap) {
+    $sitemap = $this->flattenSitemap($sitemap);
+    return count($sitemap);
   }
 
 }
