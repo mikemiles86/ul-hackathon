@@ -33,6 +33,39 @@ class ULSiteCrawler {
   }
 
 
+  public function buildFlatMap($page) {
+    $content = null;
+    $flat_map = array();
+    if (isset($page['content_document_id']) && $content_document = $this->database->loadContentDocument($page['content_document_id'])) {
+      $content = $content_document->getRawContent();
+    }
+    // else make a curl call
+    elseif (isset($page['url']) && ($raw = $this->getPageContent($page['url']))) {
+      $content = $raw;
+    }
+
+    // Have content to crawl and found links?
+    if ($content && ($sub_links = $this->getPageLinks($content))) {
+      // Filter out non domain links.
+      $site_links = $this->filterDomainLinks($sub_links, $this->site_config->getSiteDomain());
+      // Add any unknown links to the sitemap.
+      foreach ($site_links as $url) {
+        if (!$this->isKnownLink($url)) {
+          // Add to known links.
+          $this->addKnownLink($url);
+          $sub_page = [
+            'url' => $url,
+            'parent' => $page['url'],
+          ];
+
+          // Add to sitemap.
+          $flat_map[$url] = $sub_page;
+        }
+      }
+    }
+    return $flat_map;
+  }
+
   private function buildSubMap($page, $nest, $max_nest) {
     // Get Raw content, accessbile from db?
     $content = null;

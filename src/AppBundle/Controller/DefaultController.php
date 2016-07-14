@@ -30,9 +30,9 @@ class DefaultController extends Controller
 
         $taskRunner = new ULTaskRunner($this->container->get('app.uldatabase'));
 
-        $updated = $taskRunner->updateContentDocuments();
+        $updated = $taskRunner->updateContentDocuments(30);
 
-        $response = 'Updated ' . $updated. ' Content Document(s) in ' . ($taskRunner->timeSpent('update_content')*60) . ' seconds';
+        $response = 'Updated ' . $updated. ' Content Document(s) in ' . $taskRunner->timeSpent('update_content') . ' seconds';
 
         return new Response($response);
 
@@ -44,9 +44,9 @@ class DefaultController extends Controller
     public function buildSitemapAction(Request $request) {
         $taskRunner = new ULTaskRunner($this->container->get('app.uldatabase'));
 
-        $built = $taskRunner->buildSitemaps();
+        $built = $taskRunner->buildSitemaps(30);
 
-        $response = 'Built ' . $built['sitemaps'] . ' Sitemap(s), with ' . $built['links'] . ' Links(s) in ' . ($taskRunner->timeSpent('build_sitemaps')*60) . ' seconds';
+        $response = 'Built ' . $built['sitemaps'] . ' Sitemap(s), with ' . $built['links'] . ' Links(s) in ' . $taskRunner->timeSpent('build_sitemaps') . ' seconds';
 
         return new Response($response);
 
@@ -59,7 +59,7 @@ class DefaultController extends Controller
         $taskRunner = new ULTaskRunner($this->container->get('app.uldatabase'));
         $response = '';
 
-        $updated = $taskRunner->parseSitemap();
+        $updated = $taskRunner->parseSitemap(30);
 
         if ($errors = $taskRunner->getErrorMessage('parse_sitemap')) {
             $response .= 'The following errors occured:<ul><li>' . implode('</li><li>', $errors). '</li></ul>';

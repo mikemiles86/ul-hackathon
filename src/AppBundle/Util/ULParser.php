@@ -9,7 +9,7 @@ use AppBundle\Document\content_document;
 class ULParser {
 
   private $max_age = 86400;
-  private $match_threshold = 75;
+  private $match_threshold = 66;
 
   /**
    * Parse and update content document.
@@ -205,11 +205,11 @@ class ULParser {
     $value = null;
     // Empty selector? (root document)
     if (empty($selector)) {
-      $value = $crawler->text();
+      $value = $this->getNodeValue($crawler);
     // Just a basic selector string?
     } elseif (is_string($selector)) {
       if ($crawler->filter($selector)->count() > 0) {
-        $value = $crawler->filter($selector)->text();
+        $value = $this->getNodeValue($crawler->filter($selector));
       }
     }
     // else using a complex selector.
@@ -245,7 +245,7 @@ class ULParser {
             }
             // else just return selector text value.
             else {
-              return $node->text();
+              return $this->getNodeValue($node);
             }
         });
       }
@@ -256,12 +256,26 @@ class ULParser {
       }
       // Else retrieve element text value.
       elseif ($element->count() > 0){
-        $value = $element->text();
+        $value = $this->getNodeValue($element);
       }
     }
 
     if (is_array($value) && (count($value) == 1)) {
       $value = array_pop($value);
+    }
+
+    return $value;
+  }
+
+  private function getNodeValue(Crawler $node) {
+    $value = '';
+    switch ($node->nodeName()) {
+      case 'img' :
+        $value = $node->getUri();
+        break;
+      default:
+        $value = $node->text();
+        break;
     }
 
     return $value;

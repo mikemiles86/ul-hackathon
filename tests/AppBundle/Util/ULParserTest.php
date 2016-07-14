@@ -122,7 +122,7 @@ HTML;
         'data' => 'This is content',
       ],
       (object)[
-        'field' => 'author',
+        'field' => 'image',
         'selector' => 'body > a.author',
         'data' => array('author','co author'),
       ]
