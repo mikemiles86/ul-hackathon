@@ -7,7 +7,7 @@ use Doctrine\ODM\MongoDB\Mapping\Annotations as MongoDB;
 /**
  * @MongoDB\Document
  */
-class ULContentDocument implements ULContentDocumentInterface {
+class content_document implements ULContentDocumentInterface {
 
     /**
      * @MongoDB\Id
@@ -30,12 +30,12 @@ class ULContentDocument implements ULContentDocumentInterface {
     private $url;
 
     /**
-     * @MongoDB\Field(type="timestamp")
+     * @MongoDB\Field(type="int")
      */
     private $last_updated;
 
     /**
-     * @MongoDB\Field(type="timestamp")
+     * @MongoDB\Field(type="int")
      */
     private $create_date;
 
@@ -85,7 +85,7 @@ class ULContentDocument implements ULContentDocumentInterface {
     /**
      * Set lastUpdated
      *
-     * @param timestamp $lastUpdated
+     * @param int $lastUpdated
      * @return $this
      */
     public function setLastUpdated($lastUpdated)
@@ -97,7 +97,7 @@ class ULContentDocument implements ULContentDocumentInterface {
     /**
      * Get lastUpdated
      *
-     * @return timestamp $lastUpdated
+     * @return int $lastUpdated
      */
     public function getLastUpdated()
     {
@@ -217,7 +217,7 @@ class ULContentDocument implements ULContentDocumentInterface {
     /**
      * Set createDate
      *
-     * @param timestamp $createDate
+     * @param int $createDate
      * @return $this
      */
     public function setCreateDate($createDate)
@@ -229,7 +229,7 @@ class ULContentDocument implements ULContentDocumentInterface {
     /**
      * Get createDate
      *
-     * @return timestamp $createDate
+     * @return int $createDate
      */
     public function getCreateDate()
     {
