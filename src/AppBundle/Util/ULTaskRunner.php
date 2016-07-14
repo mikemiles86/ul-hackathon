@@ -102,10 +102,8 @@ class ULTaskRunner {
           $build['links'] += $crawler->countLinks($sitemap);
         }
       }
-      else {
-        $this->stopStopWatch('build_sitemaps');
-      }
     }
+    $this->stopStopWatch('build_sitemaps');
 
     return $build;
   }
@@ -147,7 +145,7 @@ class ULTaskRunner {
     return time() - $this->stop_watch[$key]['start'];
   }
 
-  private function timeSpent($key) {
+  public function timeSpent($key) {
     return $this->stop_watch[$key]['stop'] - $this->stop_watch[$key]['start'];
   }
 
