@@ -54,7 +54,7 @@ class ULTaskRunner {
 
     return $update_count;
   }
-
+  
   private function startStopWatch($key) {
 
     if (!isset($this->stop_watch[$key])) {

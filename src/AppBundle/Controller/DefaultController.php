@@ -35,5 +35,17 @@ class DefaultController extends Controller
         return 'Updated ' . $updated. ' Content Document(s) in ' . ($taskRunner->timeSpent('update_content')*60) . ' seconds';
     }
 
+    /**
+     * @Route("/build-sitemap", name="Build Sitemap")
+     */
+    public function buildSitemapAction(Request $request) {
+        $taskRunner = new ULTaskRunner($this->container->get('app.uldatabase'));
+
+        $built = $taskRunner->buildSiteMap();
+
+        return 'Built ' . $built['sitemaps'] . ' Sitemap(s), with ' . $build['links'] . ' Links(s) in ' . ($taskRunner->timeSpent('build_sitemap')*60) . ' seconds';
+
+    }
+
 
 }
