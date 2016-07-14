@@ -54,7 +54,25 @@ class ULTaskRunner {
 
     return $update_count;
   }
-  
+
+  /**
+   * Update links in as many sitemaps as possilbe.
+   * @param \AppBundle\Util\int|NULL $allowed_time
+   */
+  public function buildSitemaps(int $allowed_time = null) {
+
+    // Get oldest updated site_config.
+
+  }
+
+  /**
+   * Parse as many links from sitemap as possible.
+   * @param \AppBundle\Util\int|NULL $allowed_time
+   */
+  private function parseSitemap(int $allowed_time = null) {
+
+  }
+
   private function startStopWatch($key) {
 
     if (!isset($this->stop_watch[$key])) {

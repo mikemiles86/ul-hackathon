@@ -36,14 +36,26 @@ class DefaultController extends Controller
     }
 
     /**
-     * @Route("/build-sitemap", name="Build Sitemap")
+     * @Route("/build-sitemap", name="Build Sitemaps")
      */
     public function buildSitemapAction(Request $request) {
         $taskRunner = new ULTaskRunner($this->container->get('app.uldatabase'));
 
-        $built = $taskRunner->buildSiteMap();
+        $built = $taskRunner->buildSitemaps();
 
         return 'Built ' . $built['sitemaps'] . ' Sitemap(s), with ' . $build['links'] . ' Links(s) in ' . ($taskRunner->timeSpent('build_sitemap')*60) . ' seconds';
+
+    }
+
+    /**
+     * @Route("/parse-sitemap", name="ParseSitemap")
+     */
+    public function parseSitemapAction(Request $request) {
+        $taskRunner = new ULTaskRunner($this->container->get('app.uldatabase'));
+
+        $links = $taskRunner->parseSitemap();
+
+        return 'Parsed ' . $links . ' Links(s) in ' . ($taskRunner->timeSpent('build_sitemap')*60) . ' seconds';
 
     }
 
