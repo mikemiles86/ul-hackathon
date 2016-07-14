@@ -10,6 +10,7 @@ class ULTaskRunner {
   private $database;
   private $stop_watch;
   private $time_limit = 5;
+  private $error_messages = array();
 
   public function __construct(ULDatabase $database) {
     $this->database = $database;
@@ -102,10 +103,8 @@ class ULTaskRunner {
           $build['links'] += $crawler->countLinks($sitemap);
         }
       }
-      else {
-        $this->stopStopWatch('build_sitemaps');
-      }
     }
+    $this->stopStopWatch('build_sitemaps');
 
     return $build;
   }
@@ -115,7 +114,7 @@ class ULTaskRunner {
    * @param \AppBundle\Util\int|NULL $allowed_time
    */
   public function parseSitemap(int $allowed_time = null) {
-    $parsed_count = 0;
+    $response = false;
 
     //Start stopwatch
     $this->startStopWatch('parse_sitemap');
@@ -125,7 +124,9 @@ class ULTaskRunner {
 
     $offset = $found = 0;
     while (!$found && ($site = $this->database->findDocuments('site_config', [], ['last_update_date' => 'DESC'], 1, $offset))) {
-      if ($sitemap = $site->getSitemap() && !empty($sitemap)) {
+      $sitemap = $site->getSitemap();
+      $document_types = $site->getDocumentTypeInstances();
+      if ($sitemap && $document_types) {
         $site_config = $site;
         $found = true;
       }
@@ -133,16 +134,19 @@ class ULTaskRunner {
         $offset++;
       }
     }
-
     // Have a site config?
     if ($site_config) {
       $crawler = new ULSiteCrawler($this->database, $site_config);
       $parser = new ULParser();
-      $new_sitemap = $crawler->parseSitemap($site_config->getSitemap());
+      $new_sitemap = $crawler->parseSitemap($site_config->getSitemap(), $parser, 1, 1);
       $site_config->setSitemap($new_sitemap);
+      $this->database->updateDocument($site_config);
+      $response = $site_config->getLabel() . ' (' . $site_config->getSiteDomain() . ')';
+    } else {
+      $this->setErrorMessage('parse_sitemap', 'Unable to find site config with sitemap and document type instances.');
     }
 
-    return $parsed_count;
+    return $response;
   }
 
   private function startStopWatch($key) {
@@ -163,7 +167,7 @@ class ULTaskRunner {
     return time() - $this->stop_watch[$key]['start'];
   }
 
-  private function timeSpent($key) {
+  public function timeSpent($key) {
     return $this->stop_watch[$key]['stop'] - $this->stop_watch[$key]['start'];
   }
 
@@ -184,6 +188,22 @@ class ULTaskRunner {
       }
     }
     return (($this->checkStopWatch($key) * 60) >= $limit);
+  }
+
+  private function setErrorMessage($key, $message) {
+    if (!isset($this->error_messages[$key])) {
+      $this->error_messages[$key] = [];
+    }
+
+    $this->error_messages[$key][] = $message;
+  }
+
+  public function getErrorMessage($key) {
+    $messages = false;
+    if (isset($this->error_messages[$key])) {
+      $messages = $this->error_messages[$key];
+    }
+    return $messages;
   }
 
 }

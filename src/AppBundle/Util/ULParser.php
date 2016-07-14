@@ -37,7 +37,7 @@ class ULParser {
               // Set document type.
               $content_document->setDocumentType($document_type->type_id);
               // Break loop.
-              break();
+              break;
             }
           }
         }
@@ -65,7 +65,7 @@ class ULParser {
   private function discoverDocumentType(content_document $content_document,site_config $site_config) {
     $content_type = $content_document->getDocumentType();
 
-    if ($content_type && ($site_types = $site_config->getDocumentTypeInstances()) {
+    if ($content_type && ($site_types = $site_config->getDocumentTypeInstances())) {
       $site_types = $site_config->getDocumentTypeInstances();
 
       foreach ($site_types as $type) {

@@ -32,7 +32,10 @@ class DefaultController extends Controller
 
         $updated = $taskRunner->updateContentDocuments();
 
-        return 'Updated ' . $updated. ' Content Document(s) in ' . ($taskRunner->timeSpent('update_content')*60) . ' seconds';
+        $response = 'Updated ' . $updated. ' Content Document(s) in ' . ($taskRunner->timeSpent('update_content')*60) . ' seconds';
+
+        return new Response($response);
+
     }
 
     /**
@@ -43,7 +46,9 @@ class DefaultController extends Controller
 
         $built = $taskRunner->buildSitemaps();
 
-        return 'Built ' . $built['sitemaps'] . ' Sitemap(s), with ' . $build['links'] . ' Links(s) in ' . ($taskRunner->timeSpent('build_sitemap')*60) . ' seconds';
+        $response = 'Built ' . $built['sitemaps'] . ' Sitemap(s), with ' . $built['links'] . ' Links(s) in ' . ($taskRunner->timeSpent('build_sitemaps')*60) . ' seconds';
+
+        return new Response($response);
 
     }
 
@@ -52,12 +57,18 @@ class DefaultController extends Controller
      */
     public function parseSitemapAction(Request $request) {
         $taskRunner = new ULTaskRunner($this->container->get('app.uldatabase'));
+        $response = '';
 
-        $links = $taskRunner->parseSitemap();
+        $updated = $taskRunner->parseSitemap();
 
+        if ($errors = $taskRunner->getErrorMessage('parse_sitemap')) {
+            $response .= 'The following errors occured:<ul><li>' . implode('</li><li>', $errors). '</li></ul>';
+        }
+        else {
+            $response .= 'Sitemap parsed for ' . $updated;
+        }
 
-        return 'Parsed ' . $links . ' Links(s) in ' . ($taskRunner->timeSpent('build_sitemap')*60) . ' seconds';
-
+        return new Response($response);
     }
 
 

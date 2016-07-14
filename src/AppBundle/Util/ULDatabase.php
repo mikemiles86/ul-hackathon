@@ -119,7 +119,8 @@ class ULDatabase { //implements ULDatabaseInterface {
    *   true or false if successful.
    */
   public function updateDocument(){
-    $this->manager->flush();
+    $dm = $this->manager->getManager();
+    $dm->flush();
   }
 
   /**
@@ -132,7 +133,7 @@ class ULDatabase { //implements ULDatabaseInterface {
    *   true or false if successful.
    */
   public function createDocument($document){
-    $dm = $this->manager;
+    $dm = $this->manager->getManager();
     $dm->persist($document);
     $dm->flush();
   }
@@ -140,14 +141,15 @@ class ULDatabase { //implements ULDatabaseInterface {
   /**
    * Finds documents.
    */
-  public function findDocuments($type, $filter, $sort, $limit) {
+  public function findDocuments($type, $filter, $sort, $limit, $offset) {
 
     $filter = $filter ? $filter:[];
     $sort = $sort ? $sort:null;
     $limit = $limit ? intval($limit) : null;
+    $offset = $offset ? intval($offset):0;
 
     $documents = $this->manager->getRepository('AppBundle:' . $type)
-      ->findBy($filter, $sort, $limit);
+      ->findBy($filter, $sort, $limit, $offset);
 
     if ($documents && ($limit == 1)) {
       $documents = array_pop($documents);
