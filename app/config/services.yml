@@ -10,7 +10,7 @@ services:
 services:
     app.uldatabase:
         class: AppBundle\Util\ULDatabase
-        arguments: ["@doctrine_mongodb.odm.default_connection"]
+        arguments: ["@doctrine_mongodb.odm.default_connection", "@doctrine_mongodb"]
     mongo.connection:
         class: Doctrine\MongoDB\Connection
         factory: ["@doctrine.odm.mongodb.document_manager", getConnection]
