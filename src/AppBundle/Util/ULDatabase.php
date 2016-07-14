@@ -47,29 +47,6 @@ class ULDatabase implements ULDatabaseInterface {
   }
 
   /**
-   * Saves a content document to the MongoDB.
-   *
-   * @param content_document $content_document
-   *   The content_document php object.
-   *
-   * @return bool
-   *   true or false if successful.
-   */
-  public function saveContentDocument($content_document){
-    // connect
-    $m = $this->connection;
-    $m->connect();
-
-    // select a database
-    $db = $m->selectDatabase('ulhackathon');
-
-    // select a collection (analogous to a relational database's table)
-    $collection = $db->selectCollection('content_document');
-
-    //@TODO: Save.
-  }
-
-  /**
    * @param string $site_config_id
    *   the unique id for the site
    *
@@ -91,30 +68,6 @@ class ULDatabase implements ULDatabaseInterface {
     $cursor = $collection->findOne(['_id' => $site_config_id]);
 
     return $cursor;
-  }
-
-
-  /**
-   * Saves a site config to the MongoDB.
-   *
-   * @param site_config $site_config
-   *   The site_config php object.
-   *
-   * @return bool
-   *   true or false if successful.
-   */
-  public function saveSiteConfig($site_config){
-    // connect
-    $m = $this->connection;
-    $m->connect();
-
-    // select a database
-    $db = $m->selectDatabase('ulhackathon');
-
-    // select a collection (analogous to a relational database's table)
-    $collection = $db->selectCollection('site_config');
-
-    //@TODO: Save.
   }
 
   /**
@@ -142,29 +95,6 @@ class ULDatabase implements ULDatabaseInterface {
   }
 
   /**
-   * Saves a site config to the MongoDB.
-   *
-   * @param content_document_type $content_document_type
-   *   The site_config php object.
-   *
-   * @return bool
-   *   true or false if successful.
-   */
-  public function saveContentDocumentType($content_document_type){
-    // connect
-    $m = $this->connection;
-    $m->connect();
-
-    // select a database
-    $db = $m->selectDatabase('ulhackathon');
-
-    // select a collection (analogous to a relational database's table)
-    $collection = $db->selectCollection('content_document_type');
-
-    //@TODO: Save.
-  }
-
-  /**
    * @param string $document_type
    *   the type of document
    *
@@ -183,7 +113,17 @@ class ULDatabase implements ULDatabaseInterface {
   }
 
   /**
-   * Saves a site config to the MongoDB.
+   * Update a document in MongoDB. loadDocument(), set values, run this.
+   *
+   * @return bool
+   *   true or false if successful.
+   */
+  public function updateDocument(){
+    $this->manager->flush();
+  }
+
+  /**
+   * Persist a document to MongoDB. Create new Document, set values, run this.
    *
    * @param Object $document
    *   The site_config php object.
@@ -191,9 +131,15 @@ class ULDatabase implements ULDatabaseInterface {
    * @return bool
    *   true or false if successful.
    */
-  public function saveDocument($document){
+  public function createDocument($document){
+    $dm = $this->manager;
+    $dm->persist($document);
+    $dm->flush();
   }
 
+  /**
+   * Finds documents.
+   */
   public function findDocuments($type, $filter, $sort, $limit) {
 
     $filter = $filter ? $filter:[];
