@@ -2,7 +2,7 @@
 
 namespace AppBundle\Util;
 
-use MongoDBODMProxies\__CG__\AppBundle\Document\site_config;
+use AppBundle\Document\site_config;
 use Symfony\Component\DomCrawler\Crawler;
 use AppBundle\Document\content_document;
 
@@ -14,7 +14,7 @@ class ULParser {
   /**
    * Parse and update content document.
    * @param \AppBundle\Document\content_document                     $content_document
-   * @param \MongoDBODMProxies\__CG__\AppBundle\Document\site_config $site_config
+   * @param \AppBundle\Document\site_config                          $site_config
    * @return bool
    */
   public function parseContentDocument(content_document $content_document, site_config $site_config) {
