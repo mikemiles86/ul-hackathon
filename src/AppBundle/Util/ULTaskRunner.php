@@ -136,12 +136,27 @@ class ULTaskRunner {
     }
     // Have a site config?
     if ($site_config) {
+      $created = 0;
       $crawler = new ULSiteCrawler($this->database, $site_config);
       $parser = new ULParser();
-      $new_sitemap = $crawler->parseSitemap($site_config->getSitemap(), $parser, 1, 1);
-      $site_config->setSitemap($new_sitemap);
+
+      $flat_map = $crawler->flattenSitemap($site_config->getSitemap());
+      $new_map = [];
+
+      foreach ($flat_map as &$page) {
+        // Not past time, and not already parsed url?
+        if (!$this->overAllowedTime('parse_sitemap', $allowed_time) && !isset($page['content_document_id'])) {
+          if ($crawler->parseSitemapPage($page, $parser)) {
+            $created++;
+          }
+        }
+        $new_map[] = $page;
+      }
+      $this->stopStopWatch('parse_sitemap');
+
+      $site_config->setSitemap($crawler->inflateSitemap($new_map));
       $this->database->updateDocument($site_config);
-      $response = $site_config->getLabel() . ' (' . $site_config->getSiteDomain() . ')';
+      $response = 'Created ' . $created . ' Content documents for ' . $site_config->getLabel();
     } else {
       $this->setErrorMessage('parse_sitemap', 'Unable to find site config with sitemap and document type instances.');
     }

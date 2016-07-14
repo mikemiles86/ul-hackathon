@@ -133,19 +133,20 @@ class ULParser {
     $crawler = new Crawler();
     $crawler->addHtmlContent($html);
 
-    foreach ($document_type->field_mappings as $field) {
-      $field_content = $this->getSelectorValue($crawler, $field->selector);
+    foreach ($document_type['field_mappings'] as $field) {
+      $field_content = $this->getSelectorValue($crawler, $field['selector']);
 
       if (!empty($field_content)) {
         $parsed_data[] = (object)[
-          'field' => $field->machine_name,
-          'selector' => $this->getSelectorString($field->selector),
-          'data' => $this->sanitizeContent($field_content, $field->machine_name, $document_type->type_id),
+          'field' => $field['machine_name'],
+          'selector' => $this->getSelectorString($field['selector']),
+          'data' => $this->sanitizeContent($field_content, $field['machine_name'], $document_type['type_id']),
         ];
       }
     }
+
     // Have not matched enough fields?
-    if (!$this->metThreshold(count($parsed_data), count($document_type->field_mappings))) {
+    if (!$this->metThreshold(count($parsed_data), count($document_type['field_mappings']))) {
       $parsed_data = false;
     }
 

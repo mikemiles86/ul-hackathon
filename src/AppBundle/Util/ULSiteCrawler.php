@@ -78,7 +78,7 @@ class ULSiteCrawler {
     return $submap;
   }
 
-  private function flattenSitemap($sitemap) {
+  public function flattenSitemap($sitemap) {
     $flatmap = [];
 
     foreach ($sitemap as $page) {
@@ -91,7 +91,7 @@ class ULSiteCrawler {
     return $flatmap;
   }
 
-  private function inflateSitemap ($flat_map, $parent = '') {
+  public function inflateSitemap ($flat_map, $parent = '') {
      $sitemap = [];
 
     // find all items that have parent.
@@ -122,66 +122,39 @@ class ULSiteCrawler {
     }
   }
 
-  public function parseSitemap($sitemap, ULParser $parser, $nest = 1, $max_nest = 2) {
-    $new_sitemap = array();
-    echo 'Nest: ', $nest, '<br />';
-    echo 'Sitemap: ', count($sitemap), '<br />';
-    foreach ($sitemap as &$page) {
-      if (!isset($page['passthrough'])) {
-        $page['passthrough'] = 0;
-      }
-      // if page does not already have a content document id
-      $is_content = isset($page['content_document_id']);
-      // Passthrough?
-      $passthrough = (isset($page['passthrough']) && ($page['passthrough'] >= 5));
+  public function parseSitemapPage(&$page, ULParser $parser) {
+    // Already have content id?
+    if (isset($page['content_document_id'])) {
+      return FALSE;
+    }
+    // Able to get page content?
+    if ($raw_content = $this->getPagecontent($page['url'])) {
+      // Loop through all available content types.
+      foreach ($this->site_config->getDocumentTypeInstances() as $document_type) {
 
-      echo 'Page: ' , $page['url'], '<br />';
-      echo 'IsDocument: ', $is_content , '<br />';
-
-
-      // If is not already content and no pass through.
-      if (!$is_content && !$passthrough) {
-        // Able to get content?
-        if ($raw = $this->getPageContent($page['url'])) {
-          // Loop through all site config types and try to place this content.
-          foreach ($this->site_config->getDocumentTypeInstances() as $document_type) {
-            // Able to parse into a type?
-            if ($parsed = $parser->parseContentData($raw, $document_type)) {
-              echo 'Parsed: TRUE<br />';
-              // Create a new content document.
-              $content_document = new content_document();
-              $content_document->setSite($this->site_config->getSiteConfigId());
-              $content_document->setDocumentType($document_type->type_id);
-              $content_document->setUrl($page['url']);
-              $content_document->setRawContent($raw);
-              $content_document->setParsedContent($parsed);
-              $content_document->setCreateDate(time());
-              // Save the document.
-              $this->database->createDocument($content_document);
-              //Check if saved, by getting Id.
-              if ($content_document_id = $content_document->getContentDocumentId()) {
-                // Set the id to the sitemap item.
-                $page['content_document_id'] = $content_document_id;
-              }
-              break;
-            } else {
-              $page['passthrough']++;
-            }
+        // Able to parse into this type?
+        if ($parsed_content = $parser->parseContentData($raw_content, $document_type)) {
+          // Create a new Content Document.
+          $content_document = new content_document;
+          $content_document->setSite($this->site_config->getSiteConfigId());
+          $content_document->setDocumentType($document_type['type_id']);
+          $content_document->setUrl($page['url']);
+          $content_document->setRawContent($raw_content);
+          $content_document->setParsedContent($parsed_content);
+          $content_document->setCreateDate(time());
+          // Save the document.
+          $this->database->createDocument($content_document);
+          //Check if saved, by getting Id.
+          if ($content_document_id = $content_document->getContentDocumentId()) {
+            // Set the id to the sitemap item.
+            $page['content_document_id'] = $content_document_id;
+            return TRUE;
           }
-        } else {
-          $page['passthrough']++;
         }
-      } elseif(!$is_content) {
-        $page['passthrough']++;
-      }
-
-      // Loop through all children.
-      if (isset($page['children']) && ($nest < $max_nest)) {
-        $page['children'] = $this->parseSitemap($page['children'], $parser, $is_content ? $nest: ($nest + 1), $max_nest);
       }
     }
 
-    return $sitemap;
+    return FALSE;
   }
 
   /**
