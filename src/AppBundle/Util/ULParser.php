@@ -2,6 +2,7 @@
 
 namespace AppBundle\Util;
 
+use MongoDBODMProxies\__CG__\AppBundle\Document\site_config;
 use Symfony\Component\DomCrawler\Crawler;
 use AppBundle\Document\content_document;
 
@@ -11,52 +12,70 @@ class ULParser {
   private $match_threshold = 75;
 
   /**
-   * Parse and update a content document.
-   *
-   * @param \AppBundle\Util\ULContentDocumentInterface $content_document
+   * Parse and update content document.
+   * @param \AppBundle\Document\content_document                     $content_document
+   * @param \MongoDBODMProxies\__CG__\AppBundle\Document\site_config $site_config
+   * @return bool
    */
-  public function parseContentDocument(content_document $content_document) {
-    // Check to see if needs to be updated.
-    if (!isset($content_document->last_updated) || ($this->needsUpdate($content_document->last_updated))) {
-      // Able to get the site information?
-      if ($site = $content_document->getSite()) {
-        // Able to get raw content?
-        if ($raw = $this->fetchContent($content_document->url)) {
+  public function parseContentDocument(content_document $content_document, site_config $site_config) {
+    // check to see if needs to be updated.
+    if ($this->needsUpdate($content_document->getLastUpdated())) {
+      $parsed = FALSE;
 
-          $parsed = FALSE;
-          // Able to get the document type?
-          if (isset($content_document->document_type) && $content_document->document_type) {
-            // parse based on the type found.
-            $parsed = $this->parseContentData($raw, $document_type);
-          }
-          // No document type found, loop through them.
-          else {
-            foreach ($site->getDocumentTypeInstances() as $document_type) {
-              if ($parsed = $this->parseContentData($raw, $document_type)) {
-                // update the document type.
-                $content_document->document_type = $document_type->type_id;
-                // break out of the loop.
-              }
-            }
-          }
-
-          // Have parsed and different from previous version?
-          if ($parsed && (!isset($content_document->parsed_content) || $this->contentChanged($parsed, $content_document->parsed_content))) {
-            // Update parsed.
-            $content_document->parsed_content = $parsed;
-            // Update raw.
-            $content_document->raw_content = $raw;
-            // Update the metadata.
-            $this->updateMetaData($content_document);
-            // Update the content document.
-            if ($content_document->update()) {
-              return TRUE;
+      // Able to get raw content?
+      if ($raw = $this->fetchContent($content_document->getUrl())) {
+        // Able to find document type?
+        if ($document_type = $this->discoverDocumentType($content_document, $site_config)) {
+          // Parse data.
+          $parsed = $this->parseContentData($raw, $document_type);
+        }
+        // Else do not know the type.
+        else {
+          // Loop through and attempt to guess.
+          foreach ($site_config->getDocumentTypeInstances() as $document_type) {
+            if ($parsed = $this->parseContentData($raw, $document_type)) {
+              // Set document type.
+              $content_document->setDocumentType($document_type->type_id);
+              // Break loop.
+              break();
             }
           }
         }
+
+        // Able to parse content and it is different?
+        if ($parsed && ($this->contentChanged($parsed, $content_document->getParsedContent()))) {
+          // Update the parsed content.
+          $content_document->setParsedContent($parsed);
+          // Update raw content.
+          $content_document->setRawContent($raw);
+          // Get metadata
+          if ($metadata = $this->getMetaData($raw)) {
+            // Merge with existing metadata.
+            $content_document->setMetadata($this->updateMetaData($content_document->getMetadata(), $metadata));
+          }
+          // Update update date.
+          $content_document->setLastUpdated(time());
+        }
+        return TRUE;
       }
     }
     return FALSE;
+  }
+
+  private function discoverDocumentType(content_document $content_document,site_config $site_config) {
+    $content_type = $content_document->getDocumentType();
+
+    if ($content_type && ($site_types = $site_config->getDocumentTypeInstances()) {
+      $site_types = $site_config->getDocumentTypeInstances();
+
+      foreach ($site_types as $type) {
+        if ($type->type_id == $content_type) {
+          return $type;
+        }
+      }
+    }
+
+    return false;
   }
 
   /**
@@ -264,40 +283,36 @@ class ULParser {
   }
 
   /**
-   * Retrieve and update metadata values for a content document.
-   *
-   * @param Object $content_document
-   *   Content Document object.
+   * Merge new metadata into old metadata.
+   * @param $old_metadata
+   * @param $new_metadata
+   * @return array
    */
-  private function updateMetaData(&$content_document) {
-    // Get the original metadata value
-    $content_metadata = isset($content_document->metadata) ? $content_document->metadata : array();
+  private function updateMetaData($old_metadata, $new_metadata) {
 
+    $content_metadata = $old_metadata ?: [];
 
-    // Get metadata content.
-    if ($metadata = $this->getMetaData($content_document->raw_content)) {
-      // Loop through each returned metadata values.
-      foreach ($metadata as $data) {
-        // Different actions based on field.
-        switch ($data->field) {
-          // Meta keywords.
-          case 'keywords':
-            // Merge with existing array or set new array.
-            if (!isset($content_metadata['keywords'])) {
-              $content_metadata['keywords'] = $data->data;
-            }
-            else {
-              $content_metadata['keywords'] = array_merge($content_metadata['keywords'], $data->data);
-            }
+    // Loop through each new values.
+    foreach ($new_metadata as $data) {
+      // Different actions based on field.
+      switch ($data->field) {
+        // Meta keywords.
+        case 'keywords':
+          // Merge with existing array or set new array.
+          if (!isset($content_metadata['keywords'])) {
+            $content_metadata['keywords'] = $data->data;
+          }
+          else {
+            $content_metadata['keywords'] = array_merge($content_metadata['keywords'], $data->data);
+          }
           break;
-          // Default acton, just overwrite existing value.
-          default:
-            $content_metadata[$data->field] = $data->data;
-        }
+        // Default acton, just overwrite existing value.
+        default:
+          $content_metadata[$data->field] = $data->data;
       }
-      // Override the document metadata.
-      $content_document->metadata = $content_metadata;
     }
+
+    return $content_metadata;
   }
 
   /**

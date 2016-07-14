@@ -214,7 +214,7 @@ class ULSiteCrawler implements ULSiteCrawlerInterface {
 
       return $content_document;
     }
-    
+
     return false;
   }
 

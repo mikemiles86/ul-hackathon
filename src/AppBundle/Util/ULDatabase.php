@@ -193,4 +193,17 @@ class ULDatabase implements ULDatabaseInterface {
    */
   public function saveDocument($document){
   }
+
+  public function findContentDocument(array $filter = null, array $sort = null, $limit = null) {
+
+    $filter = $filter ? $filter:[];
+    $sort = $sort ? $sort:null;
+    $limit = $limit ? intval($limit) : null;
+
+    $documents = $this->manager->getRepository('AppBundle:content_document')
+      ->findBy($filter, $sort, $limit);
+
+
+    return $documents;
+  }
 }
