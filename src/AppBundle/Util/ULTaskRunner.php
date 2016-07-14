@@ -34,7 +34,7 @@ class ULTaskRunner {
       }
 
       // Have a content document && site config?
-      if ($content_document && ($site_config = $this->database->loadSiteConfig($content_document->getSiteId))) {
+      if ($content_document && ($site_config = $this->database->loadSiteConfig($content_document[0]->getSiteId()))) {
         // Create a new Parser.
         $parser = new ULParser();
         // Update content document.
