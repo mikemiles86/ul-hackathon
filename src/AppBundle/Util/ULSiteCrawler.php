@@ -10,9 +10,16 @@ class ULSiteCrawler implements ULSiteCrawlerInterface {
 
   private $known_links = array();
   private $site;
+  private $max_nesting = 2;
+  private $max_discovery = 5;
+  private $discovery_count = 0;
 
   public function __construct(ULSiteConfig $site) {
     $this->site = $site;
+  }
+
+  public function setKnownLinks($links) {
+    $this->known_links = $links;
   }
 
   public function addKnownLink($url) {
@@ -199,14 +206,58 @@ class ULSiteCrawler implements ULSiteCrawlerInterface {
   }
 
   public function createContentDocument($content) {
-    $content_document = new ULContentDocument();
-    $content_document->setSite($content['site_id']);
-    //$content->setRawContent($content['raw_content']);
-   // $content->setCreateDate(time());
-    $content_document->setUrl($content['url']);
+    if ($content['site_id']) {
 
-    return $content_document;
+      $content_document = new ULContentDocument();
+      $content_document->setSite($content['site_id']);
+      $content_document->setRawContent($content['raw_content']);
+      $content_document->setUrl($content['url']);
 
+      return $content_document;
+    }
+
+    return false;
+  }
+
+  public function crawlSite($max_nesting = 5, $max_discovery = 100) {
+
+    $this->max_nesting = $max_nesting;
+    $this->max_discovery = $max_discovery;
+    $this->discovery_count = 0;
+
+    $this->traverseSite($this->site->getSiteDomain());
+    return $this->discovery_count;
+  }
+
+  private function traverseSite($url, $nest_level = 1) {
+
+    // Find a content document with this url.
+    if (($nest_level < $this->max_nesting) && ($this->discovery_count < $this->max_discovery)) {
+
+      if ($page = $this->crawlPage($url,$this->site->getSiteDomain())) {
+        // Page have links?
+        if (isset($page['links'])) {
+          // Send the links for discovery.
+          foreach ($page['links'] as $link_url) {
+            $this->traverseSite($link_url, $nest_level+1);
+          }
+        }
+        // Page have raw content?
+        if (isset($page['raw_content'])) {
+          // Create a content document.
+          $content = [
+            'site_id' => $this->site->getSiteConfigId(),
+            'url' => $url,
+            'raw_content' => $page['raw_content'],
+          ];
+
+          if ($this->createContentDocument($content)) {
+            $this->discovery_count++;
+            $this->addKnownLink($url);
+          }
+        }
+      }
+    }
   }
 
 }

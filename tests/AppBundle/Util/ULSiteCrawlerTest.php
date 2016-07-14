@@ -168,7 +168,13 @@ HTML;
 
     $result = $crawler->createContentDocument($stub_content);
     $this->assertNotNull($result);
+  }
 
+  public function testCrawlSite() {
+    $stub_site = new ULSiteConfigDummy([], 'https://www.wearegenuine.com', 'wearegenuine');
+    $crawler = new ULSiteCrawler($stub_site);
+    $result = $crawler->crawlSite(5,100);
+    $this->assertGreaterThan(0, $result);
   }
 
 }
