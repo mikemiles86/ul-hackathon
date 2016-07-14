@@ -55,6 +55,7 @@ class DefaultController extends Controller
 
         $links = $taskRunner->parseSitemap();
 
+
         return 'Parsed ' . $links . ' Links(s) in ' . ($taskRunner->timeSpent('build_sitemap')*60) . ' seconds';
 
     }

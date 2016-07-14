@@ -120,10 +120,26 @@ class ULTaskRunner {
     //Start stopwatch
     $this->startStopWatch('parse_sitemap');
 
-    // Loop and do as many as possible.
-    while (!$this->overAllowedTime('parse_sitemap', $allowed_time)) {
+    // Attempt to find a site config with a site map.
+    $site_config = false;
 
+    $offset = $found = 0;
+    while (!$found && ($site = $this->database->findDocuments('site_config', [], ['last_update_date' => 'DESC'], 1, $offset))) {
+      if ($sitemap = $site->getSitemap() && !empty($sitemap)) {
+        $site_config = $site;
+        $found = true;
+      }
+      else {
+        $offset++;
+      }
+    }
 
+    // Have a site config?
+    if ($site_config) {
+      $crawler = new ULSiteCrawler($this->database, $site_config);
+      $parser = new ULParser();
+      $new_sitemap = $crawler->parseSitemap($site_config->getSitemap());
+      $site_config->setSitemap($new_sitemap);
     }
 
     return $parsed_count;

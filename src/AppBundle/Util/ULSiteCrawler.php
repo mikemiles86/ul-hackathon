@@ -122,6 +122,59 @@ class ULSiteCrawler {
     }
   }
 
+  public function parseSitemap($sitemap, ULParser $parser, $nest = 1, $max_nest = 2) {
+    $new_sitemap = array();
+
+    foreach ($sitemap as $page) {
+      // if page does not already have a content document id
+      $is_content = isset($page['content_document_id']);
+      // Passthrough?
+      $passthrough = (isset($page['passthrough']) && ($page['passthrough'] >= 5))
+
+      // If is not already content and no pass through.
+      if (!$is_content && !$passthrough) {
+        // Able to get content?
+        if ($raw = $this->getPageContent($page['url'])) {
+          // Loop through all site config types and try to place this content.
+          foreach ($this->site_config->getDocumentTypeInstances() as $document_type) {
+            // Able to parse into a type?
+            if ($parsed = $parser->parseContentData($raw, $document_type)) {
+              // Create a new content document.
+              $content_document = new content_document();
+              $content_document->setSite($this->site_config->getSiteConfigId());
+              $content_document->setDocumentType($document_type->type_id);
+              $content_document->setUrl($page['url']);
+              $content_document->setRawContent($raw);
+              $content_document->setParsedContent($parsed);
+              $content_document->setCreateDate(time());
+              // Save the document.
+              $this->database->createDocument($content_document);
+              //Check if saved, by getting Id.
+              if ($content_document_id = $content_document->getContentDocumentId()) {
+                // Set the id to the sitemap item.
+                $page['content_document_id'] = $content_document_id;
+              }
+              break();
+            }
+          }
+        } elseif ($is_content) {
+          $nest--;
+        } else {
+          $page['passthrough']++;
+        }
+      }
+
+      // Loop through all children.
+      if ($page['children'] && ($nest < $max_nest)) {
+        $page['children'] = $this->parseSitemap($page['children'], $parser, $nest+1, $max_nest);
+      }
+      // Add page back to new sitemap.
+      $new_sitemap[] = $page;
+    }
+
+    return $new_sitemap;
+  }
+
   /**
    * Retrieve the HTML content of a page.
    *
