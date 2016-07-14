@@ -141,7 +141,7 @@ class ULDatabase { //implements ULDatabaseInterface {
   /**
    * Finds documents.
    */
-  public function findDocuments($type, $filter, $sort, $limit, $offset) {
+  public function findDocuments($type, $filter, $sort, $limit, $offset = 0) {
 
     $filter = $filter ? $filter:[];
     $sort = $sort ? $sort:null;
