@@ -170,7 +170,7 @@ class ULSiteCrawler {
         if ($parsed_content = $parser->parseContentData($raw_content, $document_type)) {
           // Create a new Content Document.
           $content_document = new content_document;
-          $content_document->setSite($this->site_config->getSiteConfigId());
+          $content_document->setSiteId($this->site_config->getSiteConfigId());
           $content_document->setDocumentType($document_type['type_id']);
           $content_document->setUrl($page['url']);
           $content_document->setRawContent($raw_content);
