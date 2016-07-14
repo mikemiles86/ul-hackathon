@@ -100,6 +100,7 @@ class ULTaskRunner {
             $new_map = array_merge($new_map, $crawler->buildFlatMap($page));
           }
         }
+        $new_map = array_merge($flat_map, $new_map);
 
         $new_map = $crawler->inflateSitemap($new_map);
         // Save sitemap.

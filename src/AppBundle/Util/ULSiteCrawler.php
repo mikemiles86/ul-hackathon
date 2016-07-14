@@ -36,6 +36,7 @@ class ULSiteCrawler {
   public function buildFlatMap($page) {
     $content = null;
     $flat_map = array();
+
     if (isset($page['content_document_id']) && $content_document = $this->database->loadContentDocument($page['content_document_id'])) {
       $content = $content_document->getRawContent();
     }
