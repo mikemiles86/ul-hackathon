@@ -60,9 +60,48 @@ class ULTaskRunner {
    * @param \AppBundle\Util\int|NULL $allowed_time
    */
   public function buildSitemaps(int $allowed_time = null) {
+    $build = array('sitemaps' => 0, 'links' => 0);
 
-    // Get oldest updated site_config.
+    //Start stopwatch
+    $this->startStopWatch('build_sitemaps');
 
+    // Loop and do as many as possible.
+    while (!$this->overAllowedTime('build_sitemaps', $allowed_time)) {
+      $site_config = false;
+
+      // Find site with no sitemaps order by oldest.
+      if ($config = $this->database->findSiteConfig(['sitemap' => '' ], ['last_update_date' => 'DESC'], 1)) {
+        $site_config = $config;
+      }
+      // else get oldest site_config.
+      elseif ($config = $this->database->findSiteConfig([], ['last_update_date' => 'DESC'], 1)) {
+        $site_config = $config;
+      }
+
+      // Have a site config?
+      if ($site_config) {
+        // Get new crawler.
+        $crawler = new ULSiteCrawler();
+        // Not Able to get exissting sitemap?
+        if (!$sitemap = $site_config->getSitemap()) {
+          // Create a blank one.
+          $sitemap = [
+            'url' => $site_config->getSiteDomain(),
+          ];
+        }
+
+        // Build Sitemap.
+        if ($sitemap = $crawler->buildSitemap($sitemap)) {
+          // Update sitemap
+          $site_config->saveSitemap($sitemap);
+        }
+      }
+      else {
+        $this->stopStopWatch('build_sitemaps');
+      }
+    }
+
+    return $build;
   }
 
   /**

@@ -50,6 +50,11 @@ class site_config implements ULSiteConfigInterface {
     private $document_type_instances;
 
     /**
+     * @MongoDB\Field(type="collection")
+     */
+    private $sitemap;
+
+    /**
      * Get siteConfigId
      *
      * @return id $siteConfigId
@@ -210,5 +215,27 @@ class site_config implements ULSiteConfigInterface {
      */
     public function getDocumentTypeInstances(){
       return $this->document_type_instances;
+    }
+
+    /**
+     * Set sitemap
+     *
+     * @param collection $sitemap
+     * @return $this
+     */
+    public function setSitemap($sitemap)
+    {
+        $this->sitemap = $sitemap;
+        return $this;
+    }
+
+    /**
+     * Get sitemap
+     *
+     * @return collection $sitemap
+     */
+    public function getSitemap()
+    {
+        return $this->sitemap;
     }
 }
