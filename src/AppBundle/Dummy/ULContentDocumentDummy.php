@@ -2,10 +2,10 @@
 
 namespace AppBundle\Dummy;
 
-use AppBundle\Document\ULContentDocument;
-use AppBundle\Document\ULSiteConfig;
+use AppBundle\Document\content_document;
+use AppBundle\Document\site_config;
 
-class ULContentDocumentDummy extends ULContentDocument {
+class ULContentDocumentDummy extends content_document {
 
   private $url;
   private $document_type;
@@ -14,7 +14,7 @@ class ULContentDocumentDummy extends ULContentDocument {
   private $raw_content;
   private $parsed_content;
 
-  public function __construct($url, ULSiteConfig $site, $document_type = null, $last_updated = null) {
+  public function __construct($url, site_config $site, $document_type = null, $last_updated = null) {
     $this->url = $url;
     $this->site = $site;
     if ($document_type) {

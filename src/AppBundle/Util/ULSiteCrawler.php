@@ -2,16 +2,16 @@
 
 namespace AppBundle\Util;
 
-use AppBundle\Document\ULContentDocument;
+use AppBundle\Document\content_document;
 use Symfony\Component\DomCrawler\Crawler;
-use AppBundle\Document\ULSiteConfig;
+use AppBundle\Document\site_config;
 
 class ULSiteCrawler implements ULSiteCrawlerInterface {
 
   private $known_links = array();
   private $site;
 
-  public function __construct(ULSiteConfig $site) {
+  public function __construct(site_config $site) {
     $this->site = $site;
   }
 
@@ -199,7 +199,7 @@ class ULSiteCrawler implements ULSiteCrawlerInterface {
   }
 
   public function createContentDocument($content) {
-    $content_document = new ULContentDocument();
+    $content_document = new content_document();
     $content_document->setSite($content['site_id']);
     //$content->setRawContent($content['raw_content']);
    // $content->setCreateDate(time());

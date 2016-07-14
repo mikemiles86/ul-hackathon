@@ -2,11 +2,11 @@
 
 namespace AppBundle\Util;
 
-use AppBundle\Document\ULSiteConfig;
+use AppBundle\Document\site_config;
 
 interface ULSiteCrawlerInterface {
 
-  public function __construct(ULSiteConfig $site);
+  public function __construct(site_config $site);
 
   public function getPageContent($url);
 

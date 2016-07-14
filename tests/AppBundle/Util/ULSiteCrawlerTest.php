@@ -2,7 +2,7 @@
 
 namespace Tests\AppBundle\Util;
 
-use AppBundle\Document\ULContentDocument;
+use AppBundle\Document\content_document;
 use AppBundle\Dummy\ULSiteConfigDummy;
 use AppBundle\Util\ULSiteCrawler;
 
