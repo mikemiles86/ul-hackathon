@@ -119,7 +119,8 @@ class ULDatabase { //implements ULDatabaseInterface {
    *   true or false if successful.
    */
   public function updateDocument(){
-    $this->manager->flush();
+    $dm = $this->manager->getManager();
+    $dm->flush();
   }
 
   /**
@@ -132,7 +133,7 @@ class ULDatabase { //implements ULDatabaseInterface {
    *   true or false if successful.
    */
   public function createDocument($document){
-    $dm = $this->manager;
+    $dm = $this->manager->getManager();
     $dm->persist($document);
     $dm->flush();
   }
