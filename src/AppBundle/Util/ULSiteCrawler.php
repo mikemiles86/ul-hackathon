@@ -269,7 +269,7 @@ class ULSiteCrawler {
     $parsed_domain = parse_url($domain);
 
     $domain_subdomain = '';
-    if (substr_count($parsed_domain['host'],'.') > 1) {
+    if (isset($parsed_domain['host']) && substr_count($parsed_domain['host'],'.') > 1) {
       $domain_subdomain = substr($parsed_domain['host'],0,strpos($parsed_domain['host'],'.')) . '.';
     }
 
