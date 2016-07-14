@@ -25,11 +25,11 @@ class ULTaskRunner {
     while (!$this->overAllowedTime('update_content', $allowed_time)) {
       $content_document = false;
       // Find a Content Document that has never been updated.
-      if ($document = $this->database->findContentDocument(['last_updated' => ''],['last_updated' => 'DESC'],1)) {
+      if ($document = $this->database->findDocuments('content_document', ['last_updated' => ''],['last_updated' => 'DESC'],1)) {
         $content_document = $document;
       }
       // Find older content document.
-      elseif ($document = $this->database->findContentDocument([], ['last_updated' => 'DESC'], 1)) {
+      elseif ($document = $this->database->findDocuments('content_document', [], ['last_updated' => 'DESC'], 1)) {
         $content_document = $document;
       }
 
@@ -70,11 +70,11 @@ class ULTaskRunner {
       $site_config = false;
 
       // Find site with no sitemaps order by oldest.
-      if ($config = $this->database->findSiteConfig(['sitemap' => '' ], ['last_update_date' => 'DESC'], 1)) {
+      if ($config = $this->database->findDocuments('site_config', ['sitemap' => '' ], ['last_update_date' => 'DESC'], 1)) {
         $site_config = $config;
       }
       // else get oldest site_config.
-      elseif ($config = $this->database->findSiteConfig([], ['last_update_date' => 'DESC'], 1)) {
+      elseif ($config = $this->database->findDocuments('site_config', [], ['last_update_date' => 'DESC'], 1)) {
         $site_config = $config;
       }
 
