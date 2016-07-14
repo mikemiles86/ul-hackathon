@@ -29,13 +29,13 @@ interface ULDatabaseInterface {
 
 
   /**
-   * @param string $site_id
+   * @param string $site_config_id
    *   the unique id for the site
    *
    * @return Object
    *   Return PHP object of the site config document or boolean FALSE.
    */
-  public function loadSiteConfig($site_id);
+  public function loadSiteConfig($site_config_id);
 
 
   /**

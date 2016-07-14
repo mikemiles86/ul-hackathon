@@ -7,7 +7,7 @@ use Doctrine\ODM\MongoDB\Mapping\Annotations as MongoDB;
 /**
  * @MongoDB\Document
  */
-class ULSiteConfig implements ULSiteConfigInterface {
+class site_config implements ULSiteConfigInterface {
 
     /**
      * @MongoDB\Id
@@ -25,7 +25,7 @@ class ULSiteConfig implements ULSiteConfigInterface {
     private $site_domain;
 
     /**
-     * @MongoDB\Field(type="timestamp")
+     * @MongoDB\Field(type="int")
      */
     private $last_update_date;
 
@@ -106,7 +106,7 @@ class ULSiteConfig implements ULSiteConfigInterface {
     /**
      * Set lastUpdateDate
      *
-     * @param timestamp $lastUpdateDate
+     * @param int $lastUpdateDate
      * @return $this
      */
     public function setLastUpdateDate($lastUpdateDate)
@@ -118,7 +118,7 @@ class ULSiteConfig implements ULSiteConfigInterface {
     /**
      * Get lastUpdateDate
      *
-     * @return timestamp $lastUpdateDate
+     * @return int $lastUpdateDate
      */
     public function getLastUpdateDate()
     {

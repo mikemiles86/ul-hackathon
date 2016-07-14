@@ -7,7 +7,7 @@ use Doctrine\ODM\MongoDB\Mapping\Annotations as MongoDB;
 /**
  * @MongoDB\Document
  */
-class ULContentDocumentType {
+class content_document_type {
 
     /**
      * @MongoDB\Id

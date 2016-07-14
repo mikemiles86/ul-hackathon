@@ -2,9 +2,9 @@
 
 namespace AppBundle\Dummy;
 
-use AppBundle\Document\ULSiteConfig;
+use AppBundle\Document\site_config;
 
-class ULSiteConfigDummy extends ULSiteConfig {
+class ULSiteConfigDummy extends site_config {
 
   private $document_type_instances = [];
   private $site_config_id = 'wearegenuine';
