@@ -162,10 +162,9 @@ class ULSiteCrawler {
       return FALSE;
     }
     // Able to get page content?
-    if ($raw_content = $this->getPagecontent($page['url'])) {
+    if ($raw_content = $this->getPageContent($page['url'])) {
       // Loop through all available content types.
       foreach ($this->site_config->getDocumentTypeInstances() as $document_type) {
-
         // Able to parse into this type?
         if ($parsed_content = $parser->parseContentData($raw_content, $document_type)) {
           // Create a new Content Document.
@@ -202,7 +201,6 @@ class ULSiteCrawler {
    */
   public function getPageContent($url) {
     $html = null;
-
     // Use cURL to fetch content.
     $ch = curl_init();
     $timeout = 5;

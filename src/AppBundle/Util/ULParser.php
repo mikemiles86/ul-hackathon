@@ -9,7 +9,7 @@ use AppBundle\Document\content_document;
 class ULParser {
 
   private $max_age = 86400;
-  private $match_threshold = 66;
+  private $match_threshold = 100;
 
   /**
    * Parse and update content document.
@@ -18,6 +18,7 @@ class ULParser {
    * @return bool
    */
   public function parseContentDocument(content_document $content_document, site_config $site_config) {
+    $content_changed = false;
     // check to see if needs to be updated.
     if ($this->needsUpdate($content_document->getLastUpdated())) {
       $parsed = FALSE;
@@ -43,20 +44,33 @@ class ULParser {
         }
 
         // Able to parse content and it is different?
-        if ($parsed && ($this->contentChanged($parsed, $content_document->getParsedContent()))) {
-          // Update the parsed content.
-          $content_document->setParsedContent($parsed);
-          // Update raw content.
-          $content_document->setRawContent($raw);
-          // Get metadata
-          if ($metadata = $this->getMetaData($raw)) {
-            // Merge with existing metadata.
-            $content_document->setMetadata($this->updateMetaData($content_document->getMetadata(), $metadata));
+        if ($parsed) {
+          if ($this->contentChanged($parsed, $content_document->getParsedContent())) {
+            // Update the parsed content.
+            $content_document->setParsedContent($parsed);
+            // Update raw content.
+            $content_document->setRawContent($raw);
+            $content_changed = true;
+            // Update update date.
+            $content_document->setLastUpdated(time());
           }
-          // Update update date.
-          $content_document->setLastUpdated(time());
+
+          if ($metadata = $this->getMetaData($content_document->getRawContent())) {
+            if ($old_meta = $content_document->getMetadata()) {
+              // Merge with existing metadata.
+              $content_document->setMetadata($this->updateMetaData($content_document->getMetadata(), $metadata));
+            } else {
+              $content_document->setMetadata($metadata);
+            }
+            $content_changed = true;
+          }
+
+          if ($content_changed) {
+            // Update update date.
+            $content_document->setLastUpdated(time());
+            return TRUE;
+          }
         }
-        return TRUE;
       }
     }
     return FALSE;
@@ -69,7 +83,7 @@ class ULParser {
       $site_types = $site_config->getDocumentTypeInstances();
 
       foreach ($site_types as $type) {
-        if ($type->type_id == $content_type) {
+        if ($type['type_id'] == $content_type) {
           return $type;
         }
       }
@@ -127,30 +141,49 @@ class ULParser {
    * @param $document_type
    * @return array|null
    */
-  public function parseContentData($html, $document_type) {
+  public function parseContentData($html, $document_type, $threshold_override = 0) {
     $parsed_data = array();
-
     $crawler = new Crawler();
     $crawler->addHtmlContent($html);
-
     foreach ($document_type['field_mappings'] as $field) {
-      $field_content = $this->getSelectorValue($crawler, $field['selector']);
+      if (!empty($field['selector'])) {
+        $field_content = $this->getSelectorValue($crawler, $field['selector']);
 
-      if (!empty($field_content)) {
-        $parsed_data[] = (object)[
-          'field' => $field['machine_name'],
-          'selector' => $this->getSelectorString($field['selector']),
-          'data' => $this->sanitizeContent($field_content, $field['machine_name'], $document_type['type_id']),
-        ];
+        if (!empty($field_content)) {
+          $parsed_data[] = (object) [
+            'field' => $field['machine_name'],
+            'selector' => $this->getSelectorString($field['selector']),
+            'data' => $this->sanitizeContent($field_content, $field['machine_name'], $document_type['type_id']),
+          ];
+        }
       }
     }
 
     // Have not matched enough fields?
-    if (!$this->metThreshold(count($parsed_data), count($document_type['field_mappings']))) {
+    if (!$this->metParseThreshold($parsed_data, $document_type['field_mappings'], $threshold_override)) {
       $parsed_data = false;
     }
 
     return empty($parsed_data) ? null:$parsed_data;
+  }
+
+  private function metParseThreshold($parsed_content, $field_mappings, $threshold_override = 0) {
+    // Strip any empty
+    $parsed_count = 0;
+    foreach ($parsed_content as $parsed_field) {
+      if (!empty($parsed_field->data) && !empty($parsed_field->selector)) {
+        $parsed_count++;
+      }
+    }
+
+    $mapping_count = 0;
+    foreach ($field_mappings as $field_map) {
+      if (!empty($field_map['selector'])) {
+        $mapping_count++;
+      }
+    }
+
+    return $this->metThreshold($parsed_count, $mapping_count, $threshold_override);
   }
 
   /**
@@ -164,12 +197,14 @@ class ULParser {
    * @return bool
    *   Boolean true or false is threshold is met or exceeded.
    */
-  private function metThreshold($check, $max) {
+  private function metThreshold($check, $max, $threshold_override = 0) {
     $met = false;
+
+    $threshold = ($threshold_override > 0) ? $threshold_override : $this->match_threshold;
     // Is check greater then zero?
     if ($check > 0) {
       // See if percentage is equal or greater then match threshold.
-      if (intval(($check/$max)*100) >= $this->match_threshold) {
+      if (intval(($check/$max)*100) >= $threshold) {
         $met = true;
       }
     }
@@ -201,7 +236,6 @@ class ULParser {
    *   Return found data.
    */
   private function getSelectorValue(Crawler $crawler, $selector) {
-
     $value = null;
     // Empty selector? (root document)
     if (empty($selector)) {
@@ -230,7 +264,6 @@ class ULParser {
       } else {
         $element = $crawler;
       }
-
       // Selector accepting multiple values?
       if (isset($selector->multiple) && $selector->multiple && ($element->count() > 0)) {
         // Crawl each instance of selector
@@ -292,9 +325,12 @@ class ULParser {
    * @return bool
    *   Boolean TRUE if not matched, Boolean FALSE is match.
    */
-  public function contentChanged($content_a, $content_b) {
+  public function contentChanged($content_a, $content_b = null) {
+    if (!$content_b) {
+      return true;
+    }
     // Compare hashes of the two objects.
-    return (md5($content_a) != md5($content_b));
+    return (md5(serialize($content_a)) != md5(serialize($content_b)));
   }
 
   /**
@@ -363,8 +399,8 @@ class ULParser {
 
   public function getMetaData($html) {
     $metadata = null;
-    if ($data = $this->parseContentData($html, $this->getMetaDataType())) {
-      foreach ($data as $field) {
+    if ($data = $this->parseContentData($html, $this->getMetaDataType(), 1)) {
+      foreach ($data as &$field) {
         switch($field->field) {
           case 'keywords':
             $field->data = explode(',', $field->data);
@@ -373,7 +409,6 @@ class ULParser {
       }
       $metadata = $data;
     }
-
     return $metadata;
   }
 
@@ -386,7 +421,7 @@ class ULParser {
 
     $metadata_type = [];
 
-    $metadata_type[] = (object)[
+    $metadata_type[] = [
       'machine_name' => 'keywords',
       'selector' => (object)[
         'type' => 'xpath',
@@ -394,7 +429,7 @@ class ULParser {
         'extract' => array('content'),
       ]
     ];
-    $metadata_type[] = (object)[
+    $metadata_type[] = [
       'machine_name' => 'description',
       'selector' => (object)[
         'type' => 'xpath',
@@ -402,7 +437,7 @@ class ULParser {
         'extract' => array('content'),
       ]
     ];
-    $metadata_type[] = (object)[
+    $metadata_type[] = [
       'machine_name' => 'language',
       'selector' => (object)[
         'type' => 'xpath',
@@ -411,7 +446,7 @@ class ULParser {
       ]
     ];
 
-    $metadata_type = (object)[
+    $metadata_type = [
       'type_id' => 'metadata',
       'field_mappings' => $metadata_type,
     ];

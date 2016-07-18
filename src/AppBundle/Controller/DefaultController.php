@@ -29,13 +29,15 @@ class DefaultController extends Controller
     public function updateContentAction(Request $request) {
 
         $taskRunner = new ULTaskRunner($this->container->get('app.uldatabase'));
+        $count = $taskRunner->updateContentDocuments(30);
 
-        $updated = $taskRunner->updateContentDocuments(30);
-
-        $response = 'Updated ' . $updated. ' Content Document(s) in ' . $taskRunner->timeSpent('update_content') . ' seconds';
-
-        return new Response($response);
-
+        return $this->render('default/task-runner.html.twig', [
+            'title' => 'Update Content Documents',
+            'count' => $count,
+            'messages' => $taskRunner->getMessages('update_content', true),
+            'errors' => $taskRunner->getErrorMessages('update_content', true),
+            'time_spent' => $taskRunner->timeSpent('update_content'),
+        ]);
     }
 
     /**
@@ -44,12 +46,14 @@ class DefaultController extends Controller
     public function buildSitemapAction(Request $request) {
         $taskRunner = new ULTaskRunner($this->container->get('app.uldatabase'));
 
-        $built = $taskRunner->buildSitemaps(30);
-
-        $response = 'Built ' . $built['sitemaps'] . ' Sitemap(s), with ' . $built['links'] . ' Links(s) in ' . $taskRunner->timeSpent('build_sitemaps') . ' seconds';
-
-        return new Response($response);
-
+        $count = $taskRunner->buildSitemaps(30);
+        return $this->render('default/task-runner.html.twig', [
+          'title' => 'Build Sitemaps',
+          'count' => $count,
+          'messages' => $taskRunner->getMessages('build_sitemaps'),
+          'errors' => $taskRunner->getErrorMessages('build_sitemaps'),
+          'time_spent' => $taskRunner->timeSpent('build_sitemaps'),
+        ]);
     }
 
     /**
@@ -57,19 +61,39 @@ class DefaultController extends Controller
      */
     public function parseSitemapAction(Request $request) {
         $taskRunner = new ULTaskRunner($this->container->get('app.uldatabase'));
-        $response = '';
 
-        $updated = $taskRunner->parseSitemap(30);
+        $count = $taskRunner->parseSitemap(30);
 
-        if ($errors = $taskRunner->getErrorMessage('parse_sitemap')) {
-            $response .= 'The following errors occured:<ul><li>' . implode('</li><li>', $errors). '</li></ul>';
-        }
-        else {
-            $response .= 'Sitemap parsed for ' . $updated;
-        }
-
-        return new Response($response);
+        return $this->render('default/task-runner.html.twig', [
+          'title' => 'Parse Sitemap',
+          'count' => $count,
+          'messages' => $taskRunner->getMessages('parse_sitemap'),
+          'errors' => $taskRunner->getErrorMessages('parse_sitemap'),
+          'time_spent' => $taskRunner->timeSpent('parse_sitemap'),
+        ]);
     }
 
+    /**
+     * @Route("/all-tasks", name="All Tasks")
+     */
+    public function allTasksAction(Request $request) {
+        $taskRunner = new ULTaskRunner($this->container->get('app.uldatabase'));
+
+        $tasks = array(
+          'buildSitemaps',
+          'parseSitemap',
+          'updateContentDocuments'
+        );
+
+        $count = $taskRunner->runMultipleTasks($tasks, 60);
+
+        return $this->render('default/task-runner.html.twig', [
+          'title' => 'All Tasks',
+          'count' => $count,
+          'messages' => $taskRunner->getMessages(),
+          'errors' => $taskRunner->getErrorMessages(),
+          'time_spent' => $taskRunner->timeSpent('multiple_tasks'),
+        ]);
+    }
 
 }
