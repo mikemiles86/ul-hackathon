@@ -180,7 +180,7 @@ class ULTaskRunner {
 
     // Find oldest site config with sitemap and content types.
     $filter = ['sitemap' => ['$exists' => true], 'document_type_instances' => ['$exists' => true]];
-    if ($site = $this->database->findDocuments('site_config', $filter, ['last_update_date' => 'ASC'], 1)) {
+    if ($site = $this->database->findDocuments('site_config', $filter, ['last_update_date' => 1], 1)) {
       $site_config = $site;
     }
 
